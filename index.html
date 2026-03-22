@@ -644,15 +644,15 @@
             }
 
             const md = generateMarkdown();
-            const filename = '001. Inbox/' + generateFilename().replace('.md', '');
+            const folder = '001. Inbox';
+            const name = generateFilename().replace('.md', '');
 
-            const params = new URLSearchParams();
-            params.set('vault', vault);
-            params.set('file', filename);
-            params.set('content', md);
+            const obsidianUrl = 'obsidian://new?'
+                + 'vault=' + encodeURIComponent(vault)
+                + '&file=' + encodeURIComponent(folder) + '/' + encodeURIComponent(name)
+                + '&content=' + encodeURIComponent(md);
 
-            // Decodeer %2F terug naar / zodat Obsidian het mappad herkent
-            window.location.href = 'obsidian://new?' + params.toString().replace(/%2F/gi, '/');
+            window.location.href = obsidianUrl;
             showToast('Obsidian wordt geopend...');
         });
 
