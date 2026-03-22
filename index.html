@@ -421,8 +421,6 @@
         let recognition;
         let isRecording = false;
         let finalTranscript = '';
-        let sessionTranscript = '';
-        let previousTranscript = '';
 
         const recordBtn = document.getElementById('recordBtn');
         const recordLabel = document.getElementById('recordLabel');
@@ -478,27 +476,31 @@
         function initRecognition() {
             recognition = new SpeechRecognition();
             recognition.lang = currentLang;
-            recognition.continuous = true;
+            recognition.continuous = false;
             recognition.interimResults = true;
 
             recognition.onresult = (event) => {
                 let interim = '';
-                // Rebuild session transcript from all results to avoid duplicates
-                sessionTranscript = '';
+                let sessionFinal = '';
                 for (let i = 0; i < event.results.length; i++) {
                     if (event.results[i].isFinal) {
-                        sessionTranscript += event.results[i][0].transcript + ' ';
+                        sessionFinal += event.results[i][0].transcript;
                     } else {
                         interim += event.results[i][0].transcript;
                     }
                 }
-                finalTranscript = previousTranscript + sessionTranscript;
+                if (sessionFinal) {
+                    finalTranscript += sessionFinal + ' ';
+                }
                 updateDisplay(interim);
             };
 
             recognition.onerror = (event) => {
                 if (event.error === 'no-speech') {
                     statusBar.textContent = 'Geen spraak gedetecteerd, luistert nog...';
+                    if (isRecording) {
+                        try { recognition.start(); } catch (e) { stopRecording(); }
+                    }
                     return;
                 }
                 if (event.error === 'aborted') return;
@@ -508,10 +510,7 @@
 
             recognition.onend = () => {
                 if (isRecording) {
-                    // Save current progress before restarting
-                    previousTranscript = finalTranscript;
-                    sessionTranscript = '';
-                    // Auto-restart if still recording
+                    // Auto-restart for next utterance
                     try {
                         recognition.start();
                     } catch (e) {
@@ -561,8 +560,6 @@
         textInput.addEventListener('input', updateButtons);
 
         function startRecording() {
-            previousTranscript = finalTranscript;
-            sessionTranscript = '';
             initRecognition();
             recognition.lang = currentLang;
             try {
@@ -702,8 +699,6 @@
         // Clear
         clearBtn.addEventListener('click', () => {
             finalTranscript = '';
-            sessionTranscript = '';
-            previousTranscript = '';
             transcriptText.innerHTML = '';
             textInput.value = '';
             titleInput.value = '';
