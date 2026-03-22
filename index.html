@@ -647,9 +647,10 @@
             const folder = '001. Inbox';
             const name = generateFilename().replace('.md', '');
 
+            const fullName = folder + '/' + name;
             const obsidianUrl = 'obsidian://new?'
                 + 'vault=' + encodeURIComponent(vault)
-                + '&file=' + encodeURIComponent(folder) + '/' + encodeURIComponent(name)
+                + '&name=' + encodeURIComponent(fullName)
                 + '&content=' + encodeURIComponent(md);
 
             window.location.href = obsidianUrl;
