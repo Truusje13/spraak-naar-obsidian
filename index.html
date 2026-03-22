@@ -651,7 +651,8 @@
             params.set('file', filename);
             params.set('content', md);
 
-            window.location.href = 'obsidian://new?' + params.toString();
+            // Decodeer %2F terug naar / zodat Obsidian het mappad herkent
+            window.location.href = 'obsidian://new?' + params.toString().replace(/%2F/gi, '/');
             showToast('Obsidian wordt geopend...');
         });
 
