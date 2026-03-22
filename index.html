@@ -647,35 +647,39 @@
         shareBtn.addEventListener('click', async () => {
             const md = generateMarkdown();
             const filename = generateFilename();
+            const title = titleInput.value.trim() || 'Spraaknotitie';
 
-            if (navigator.share) {
-                try {
-                    // Try sharing as file first (better for Obsidian)
-                    const file = new File([md], filename, { type: 'text/markdown' });
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                            files: [file],
-                            title: titleInput.value.trim() || 'Spraaknotitie'
-                        });
-                    } else {
-                        // Fallback: share as text
-                        await navigator.share({
-                            title: titleInput.value.trim() || 'Spraaknotitie',
-                            text: md
-                        });
-                    }
-                    showToast('Gedeeld!');
-                } catch (e) {
-                    if (e.name !== 'AbortError') {
-                        showToast('Delen mislukt, tekst gekopieerd');
-                        copyToClipboard(md);
-                    }
-                }
-            } else {
-                // No Web Share API, copy instead
+            if (!navigator.share) {
                 copyToClipboard(md);
                 showToast('Gekopieerd! Plak in Obsidian.');
+                return;
             }
+
+            // Poging 1: deel als .md bestand (text/plain MIME zodat Android het accepteert)
+            try {
+                const file = new File([md], filename, { type: 'text/plain' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({ files: [file], title: title });
+                    showToast('Gedeeld!');
+                    return;
+                }
+            } catch (e) {
+                if (e.name === 'AbortError') return;
+                // Ga door naar volgende poging
+            }
+
+            // Poging 2: deel als tekst (opent Android deelvenster)
+            try {
+                await navigator.share({ title: title, text: md });
+                showToast('Gedeeld!');
+                return;
+            } catch (e) {
+                if (e.name === 'AbortError') return;
+            }
+
+            // Laatste redmiddel: kopieer naar klembord
+            copyToClipboard(md);
+            showToast('Gekopieerd! Plak in Obsidian.');
         });
 
         // Copy
