@@ -421,6 +421,8 @@
         let recognition;
         let isRecording = false;
         let finalTranscript = '';
+        let sessionTranscript = '';
+        let previousTranscript = '';
 
         const recordBtn = document.getElementById('recordBtn');
         const recordLabel = document.getElementById('recordLabel');
@@ -481,14 +483,16 @@
 
             recognition.onresult = (event) => {
                 let interim = '';
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const result = event.results[i];
-                    if (result.isFinal) {
-                        finalTranscript += result[0].transcript + ' ';
+                // Rebuild session transcript from all results to avoid duplicates
+                sessionTranscript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        sessionTranscript += event.results[i][0].transcript + ' ';
                     } else {
-                        interim += result[0].transcript;
+                        interim += event.results[i][0].transcript;
                     }
                 }
+                finalTranscript = previousTranscript + sessionTranscript;
                 updateDisplay(interim);
             };
 
@@ -504,6 +508,9 @@
 
             recognition.onend = () => {
                 if (isRecording) {
+                    // Save current progress before restarting
+                    previousTranscript = finalTranscript;
+                    sessionTranscript = '';
                     // Auto-restart if still recording
                     try {
                         recognition.start();
@@ -554,6 +561,8 @@
         textInput.addEventListener('input', updateButtons);
 
         function startRecording() {
+            previousTranscript = finalTranscript;
+            sessionTranscript = '';
             initRecognition();
             recognition.lang = currentLang;
             try {
@@ -693,6 +702,8 @@
         // Clear
         clearBtn.addEventListener('click', () => {
             finalTranscript = '';
+            sessionTranscript = '';
+            previousTranscript = '';
             transcriptText.innerHTML = '';
             textInput.value = '';
             titleInput.value = '';
