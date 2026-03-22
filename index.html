@@ -421,6 +421,7 @@
         let recognition;
         let isRecording = false;
         let finalTranscript = '';
+        let sessionFinalProcessed = false;
 
         const recordBtn = document.getElementById('recordBtn');
         const recordLabel = document.getElementById('recordLabel');
@@ -489,8 +490,10 @@
                         interim += event.results[i][0].transcript;
                     }
                 }
-                if (sessionFinal) {
+                // Alleen toevoegen als we dit resultaat nog niet verwerkt hebben
+                if (sessionFinal && !sessionFinalProcessed) {
                     finalTranscript += sessionFinal + ' ';
+                    sessionFinalProcessed = true;
                 }
                 updateDisplay(interim);
             };
@@ -510,6 +513,8 @@
 
             recognition.onend = () => {
                 if (isRecording) {
+                    // Reset vlag zodat de volgende spreekbeurt wel verwerkt wordt
+                    sessionFinalProcessed = false;
                     // Auto-restart for next utterance
                     try {
                         recognition.start();
