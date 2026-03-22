@@ -354,6 +354,8 @@
 
         <input type="text" class="tags-input" id="tagsInput" placeholder="Tags: bijv. idee, dagboek, werk">
 
+        <input type="text" class="title-input" id="vaultInput" placeholder="Naam van je Obsidian vault">
+
         <div class="mode-toggle">
             <button class="mode-btn active" data-mode="voice">
                 <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
@@ -432,8 +434,15 @@
         const clearBtn = document.getElementById('clearBtn');
         const titleInput = document.getElementById('titleInput');
         const tagsInput = document.getElementById('tagsInput');
+        const vaultInput = document.getElementById('vaultInput');
         const toast = document.getElementById('toast');
         const statusBar = document.getElementById('statusBar');
+
+        // Vault-naam onthouden in localStorage
+        vaultInput.value = localStorage.getItem('obsidianVault') || '';
+        vaultInput.addEventListener('input', () => {
+            localStorage.setItem('obsidianVault', vaultInput.value.trim());
+        });
 
         const textInput = document.getElementById('textInput');
         const voiceMode = document.getElementById('voiceMode');
@@ -648,43 +657,25 @@
             return dateStr + ' ' + prefix + ' ' + timeStr + '.md';
         }
 
-        // Share to Obsidian
-        shareBtn.addEventListener('click', async () => {
+        // Open in Obsidian via URI protocol
+        shareBtn.addEventListener('click', () => {
+            const vault = vaultInput.value.trim();
+            if (!vault) {
+                showToast('Vul eerst je vault-naam in!');
+                vaultInput.focus();
+                return;
+            }
+
             const md = generateMarkdown();
-            const filename = generateFilename();
-            const title = titleInput.value.trim() || 'Spraaknotitie';
+            const filename = generateFilename().replace('.md', '');
 
-            if (!navigator.share) {
-                copyToClipboard(md);
-                showToast('Gekopieerd! Plak in Obsidian.');
-                return;
-            }
+            const obsidianUrl = 'obsidian://new?'
+                + 'vault=' + encodeURIComponent(vault)
+                + '&name=' + encodeURIComponent(filename)
+                + '&content=' + encodeURIComponent(md);
 
-            // Poging 1: deel als .md bestand (text/plain MIME zodat Android het accepteert)
-            try {
-                const file = new File([md], filename, { type: 'text/plain' });
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({ files: [file], title: title });
-                    showToast('Gedeeld!');
-                    return;
-                }
-            } catch (e) {
-                if (e.name === 'AbortError') return;
-                // Ga door naar volgende poging
-            }
-
-            // Poging 2: deel als tekst (opent Android deelvenster)
-            try {
-                await navigator.share({ title: title, text: md });
-                showToast('Gedeeld!');
-                return;
-            } catch (e) {
-                if (e.name === 'AbortError') return;
-            }
-
-            // Laatste redmiddel: kopieer naar klembord
-            copyToClipboard(md);
-            showToast('Gekopieerd! Plak in Obsidian.');
+            window.location.href = obsidianUrl;
+            showToast('Obsidian wordt geopend...');
         });
 
         // Copy
