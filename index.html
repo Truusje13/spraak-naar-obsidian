@@ -423,7 +423,6 @@
         let recognition;
         let isRecording = false;
         let finalTranscript = '';
-        let sessionFinalProcessed = false;
 
         const recordBtn = document.getElementById('recordBtn');
         const recordLabel = document.getElementById('recordLabel');
@@ -487,46 +486,29 @@
             recognition = new SpeechRecognition();
             recognition.lang = currentLang;
             recognition.continuous = false;
-            recognition.interimResults = true;
+            recognition.interimResults = false;
 
             recognition.onresult = (event) => {
-                let interim = '';
-                let sessionFinal = '';
-                for (let i = 0; i < event.results.length; i++) {
-                    if (event.results[i].isFinal) {
-                        sessionFinal += event.results[i][0].transcript;
-                    } else {
-                        interim += event.results[i][0].transcript;
-                    }
-                }
-                // Alleen toevoegen als we dit resultaat nog niet verwerkt hebben
-                if (sessionFinal && !sessionFinalProcessed) {
-                    finalTranscript += sessionFinal + ' ';
-                    sessionFinalProcessed = true;
-                }
-                updateDisplay(interim);
+                // Met interimResults=false krijgen we alleen definitieve resultaten
+                const result = event.results[0][0].transcript;
+                finalTranscript += result + ' ';
+                updateDisplay();
             };
 
             recognition.onerror = (event) => {
-                if (event.error === 'no-speech') {
-                    statusBar.textContent = 'Geen spraak gedetecteerd, luistert nog...';
-                    if (isRecording) {
-                        try { recognition.start(); } catch (e) { stopRecording(); }
-                    }
+                if (event.error === 'no-speech' || event.error === 'aborted') {
+                    // Stilte of onderbreking — gewoon opnieuw luisteren
                     return;
                 }
-                if (event.error === 'aborted') return;
                 showToast('Fout: ' + event.error);
                 stopRecording();
             };
 
             recognition.onend = () => {
                 if (isRecording) {
-                    // Reset vlag zodat de volgende spreekbeurt wel verwerkt wordt
-                    sessionFinalProcessed = false;
-                    // Auto-restart for next utterance
                     try {
                         recognition.start();
+                        statusBar.textContent = 'Luistert...';
                     } catch (e) {
                         stopRecording();
                     }
@@ -534,13 +516,9 @@
             };
         }
 
-        function updateDisplay(interim) {
+        function updateDisplay() {
             placeholder.style.display = 'none';
-            let html = escapeHtml(finalTranscript);
-            if (interim) {
-                html += '<span class="interim">' + escapeHtml(interim) + '</span>';
-            }
-            transcriptText.innerHTML = html;
+            transcriptText.innerHTML = escapeHtml(finalTranscript);
 
             // Scroll to bottom
             const area = document.getElementById('transcriptArea');
