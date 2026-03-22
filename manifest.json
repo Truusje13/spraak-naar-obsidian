@@ -1,0 +1,16 @@
+{
+    "name": "Spraak naar Obsidian",
+    "short_name": "Spraak",
+    "description": "Spreek in en sla op als markdown in Obsidian",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#1a1a2e",
+    "theme_color": "#1a1a2e",
+    "icons": [
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%231a1a2e'/><path d='M96 120c13.3 0 24-10.7 24-24V48c0-13.3-10.7-24-24-24S72 34.7 72 48v48c0 13.3 10.7 24 24 24z' fill='%237c5cbf'/><path d='M136 96c0 22.1-17.9 40-40 40s-40-17.9-40-40H40c0 28.2 20.9 51.4 48 55.4V168h16v-16.6c27.1-4 48-27.2 48-55.4h-16z' fill='%237c5cbf'/></svg>",
+            "sizes": "192x192",
+            "type": "image/svg+xml"
+        }
+    ]
+}
