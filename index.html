@@ -646,12 +646,12 @@
             const md = generateMarkdown();
             const filename = '001. Inbox/' + generateFilename().replace('.md', '');
 
-            const obsidianUrl = 'obsidian://new?'
-                + 'vault=' + encodeURIComponent(vault)
-                + '&file=' + encodeURIComponent(filename)
-                + '&content=' + encodeURIComponent(md);
+            const params = new URLSearchParams();
+            params.set('vault', vault);
+            params.set('file', filename);
+            params.set('content', md);
 
-            window.location.href = obsidianUrl;
+            window.location.href = 'obsidian://new?' + params.toString();
             showToast('Obsidian wordt geopend...');
         });
 
