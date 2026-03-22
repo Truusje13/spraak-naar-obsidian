@@ -645,11 +645,11 @@
             }
 
             const md = generateMarkdown();
-            const filename = generateFilename().replace('.md', '');
+            const filename = 'inbox/' + generateFilename().replace('.md', '');
 
             const obsidianUrl = 'obsidian://new?'
                 + 'vault=' + encodeURIComponent(vault)
-                + '&name=' + encodeURIComponent(filename)
+                + '&file=' + encodeURIComponent(filename)
                 + '&content=' + encodeURIComponent(md);
 
             window.location.href = obsidianUrl;
